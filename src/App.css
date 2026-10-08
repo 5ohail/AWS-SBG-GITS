@@ -1,0 +1,15 @@
+/* AWS Community Day Udaipur — App Level Custom Styles */
+
+/* Ensure smooth section anchors */
+html {
+  scroll-behavior: smooth;
+}
+
+/* App container base resets */
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  background-color: #000000;
+}

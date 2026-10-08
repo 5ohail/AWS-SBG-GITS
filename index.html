@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en" class="dark" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23FF9900' d='M16 2L4 9v14l12 7 12-7V9L16 2zm0 3.2L25.3 10 16 15.3 6.7 10 16 5.2z'/%3E%3C/svg%3E" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <title>AWS Community Day Udaipur 2026 — Where Cloud Meets Community</title>
+    <meta name="description" content="Official website for AWS Community Day Udaipur 2026. Join top cloud architects, developers, and AI researchers on February 28, 2026 at Geetanjali Institute of Technical Studies, Udaipur." />
+    <meta name="theme-color" content="#030303" />
+    <meta property="og:title" content="AWS Community Day Udaipur 2026" />
+    <meta property="og:description" content="Where Cloud Meets Community — Feb 28, 2026 | Geetanjali Institute of Technical Studies, Udaipur" />
+    <meta property="og:type" content="website" />
+
+    <!-- Google Fonts: Geist by Vercel, Geist Mono, Outfit & Space Grotesk -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&family=Outfit:wght@200..800&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet" />
+
+    <!-- Permanent Dark Theme Setter -->
+    <script>
+      (function() {
+        try {
+          localStorage.setItem('aws-community-theme', 'dark');
+        } catch (e) {}
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.classList.remove('light');
+        document.documentElement.classList.add('dark');
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
