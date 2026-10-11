@@ -6,22 +6,60 @@ export const eventInfo = {
   date: "31 Oct 2026",
   time: "10:00 AM – 4:00 PM IST",
   location: "3rd Space, Arihant Nagar, Udaipur",
-  venue: "Main Auditorium & Innovation Block, Dabok, Udaipur, Rajasthan",
-  city: "3rd Space, Udaipur",
+  venue: "Cinema Hall, Ground floor",
+  city: "Udaipur, Rajasthan",
   college: "Geetanjali Institute of Technical Studies",
 };
 
+export const venueSectionData = {
+  heading: {
+    eyebrow: "A place to meet",
+    title: "Find your place in Udaipur.",
+    subtitle:
+      "One day of cloud, community, and new connections—together at 3rd Space.",
+  },
+  name: "3rd Space, Udaipur",
+  address: eventInfo.location,
+  room: eventInfo.venue,
+  date: eventInfo.date,
+  time: eventInfo.time,
+  city: eventInfo.city,
+  mapUrl:
+    "https://www.google.com/maps/search/?api=1&query=3rd%20Space%2C%20Arihant%20Nagar%2C%20Udaipur%2C%20India",
+  photos: [
+    {
+      layout: "city",
+      src: "/venue/v1.png",
+      alt: "Udaipur City Palace glowing above Lake Pichola at dusk",
+      label: "UDAIPUR · RAJASTHAN",
+      caption: "A city made for moments.",
+    },
+    {
+      layout: "community",
+      src: "/venue/v2.png",
+      alt: "Community members sharing a moment at a student event",
+      label: "COMMUNITY, TOGETHER",
+    },
+    {
+      layout: "builders",
+      src: "/venue/v3.png",
+      alt: "Student builders gathered at a community event",
+      label: "BUILT BY THE COMMUNITY",
+    },
+  ],
+};
+
 export const stats = [
-  { label: "Expected attendees", value: 400, suffix: "+" },
-  { label: "Speakers", value: 12, suffix: "+" },
-  { label: "Sessions", value: 10, suffix: "" },
-  { label: "Hours of cloud", value: 8, suffix: "+" },
+  { label: "Expected attendees", value: 150, suffix: "+" },
+  { label: "Speakers", value: 6, suffix: "" },
+  { label: "Sessions", value: 8, suffix: "" },
+  { label: "Hours of cloud", value: 6, suffix: "" },
 ];
 
 export const tracks = [
   "Cloud Native / DevOps",
   "FinOps",
-  "Architecture & Security",
+  "Kubernetes",
   "Student Builders",
   "Community & Career",
   "Hands-on Labs",
@@ -61,25 +99,19 @@ export const eventSpeakers = [
 
 export const schedule = [
   {
-    time: "08:30 – 09:30",
-    title: "Registration & Breakfast",
-    desc: "Check in at the GITS auditorium foyer and grab refreshments.",
-    type: "registration",
-  },
-  {
-    time: "09:30 – 09:50",
+    time: "10:00 – 10:15",
     title: "Welcome Note",
     desc: "Opening by AWS Student Builder Club, GITS.",
     type: "talk",
   },
   {
-    time: "09:50 – 10:40",
+    time: "10:15 – 11:15",
     title: "Keynote",
     desc: "The student path into cloud, community, and real-world AWS.",
     type: "talk",
   },
   {
-    time: "10:50 – 11:35",
+    time: "11:15 – 11:35",
     title: "Technical Talks + Quiz Round 1",
     desc: "Architecture, IAM, and building on AWS.",
     type: "quiz",
@@ -115,7 +147,7 @@ export const schedule = [
     type: "panel",
   },
   {
-    time: "15:50 – 16:30",
+    time: "15:50 – 16:00",
     title: "Closing Ceremony",
     desc: "Awards, contest winners, swag, and group photo.",
     type: "ceremony",
@@ -127,7 +159,7 @@ export const sponsors = {
   gold: [{ name: "Sponsor TBA" }],
   community: [
     { name: "AWS Student Builder Club, GITS" },
-    { name: "Geetanjali Institute of Technical Studies" },
+    // { name: "Geetanjali Institute of Technical Studies" },
     { name: "Community Partner TBA" },
     { name: "Community Partner TBA" },
   ],
@@ -181,16 +213,16 @@ export const coreTeam = [
 
 export const faqs = [
   {
-    q: "Who can attend AWS Student Community Day at GITS?",
+    q: "Who can attend AWS Student Community Day at 3rd Space Udaipur?",
     a: "Students from GITS and other colleges, plus early-career builders interested in AWS, cloud, and community. Registration is required.",
   },
   {
     q: "Where is the venue and how do I reach it?",
-    a: "Geetanjali Institute of Technical Studies, Dabok, Udaipur, Rajasthan. Sessions run from the Main Auditorium with labs in the Innovation Block. Campus directions will be emailed to registered attendees.",
+    a: "The Event is at 3rd Space Shyam Nagar, Pulla Bhuwana, Arihant Nagar, Pahada, Bhuwana, Rajasthan (313001) in Cinema Hall at Ground Floor, Personal Vehicles or Public Transport from Pratap Nagar.",
   },
   {
     q: "Is this a paid event?",
-    a: "Community Day is designed as a free student event, subject to registration capacity. Any change will be announced on this page and by email.",
+    a: "Yes the Event will be paid the prices are decided to be ₹100 for early bird passes.",
   },
   {
     q: "Will I get a certificate or swag?",
@@ -198,7 +230,7 @@ export const faqs = [
   },
   {
     q: "Who organizes this?",
-    a: "AWS Student Builder Club at Geetanjali Institute of Technical Studies, with support from faculty mentors, volunteers, and community partners.",
+    a: "AWS Student Builder Group at Geetanjali Institute of Technical Studies, with support from mentors, volunteers, and community partners.",
   },
   {
     q: "How do I ask something else?",

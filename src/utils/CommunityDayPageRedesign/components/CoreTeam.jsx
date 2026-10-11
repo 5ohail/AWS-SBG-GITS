@@ -1,8 +1,8 @@
-import React, { useRef, useEffect } from 'react';
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import LinkedInIcon from '../../../components/LinkedInIcon';
-import { coreTeamRow1, coreTeamRow2 } from '../../communityDayData';
+import React, { useRef, useEffect, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import LinkedInIcon from "../../../components/LinkedInIcon";
+import { coreTeamRow1, coreTeamRow2 } from "../../communityDayData";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -12,46 +12,83 @@ gsap.registerPlugin(ScrollTrigger);
 
 function InteractiveMarqueeRow({
   items,
-  direction = 'left',
+  direction = "left",
   speed = 0.85,
   initialOffset = 0,
-  rowLabel = 'ROW'
+  rowLabel = "ROW",
 }) {
   const containerRef = useRef(null);
   const trackRef = useRef(null);
+  const [copyCount, setCopyCount] = useState(2);
   const xPos = useRef(initialOffset);
-  const baseSpeed = direction === 'left' ? -speed : speed;
+  const baseSpeed = direction === "left" ? -speed : speed;
   const currentSpeed = useRef(baseSpeed);
   const isDragging = useRef(false);
   const lastX = useRef(0);
   const lastTime = useRef(0);
   const velocity = useRef(0);
   const isHovered = useRef(false);
-  const rafId = useRef(null);
   const singleSetWidth = useRef(0);
 
-  const repeatCount = 4;
-  const displayItems = [...items, ...items, ...items, ...items];
+  const repeatedItems = Array.from({ length: copyCount }, () => items);
 
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
 
-    const measureWidth = () => {
-      // The length of 1 set of items is 1/repeatCount of the total scroll width
-      singleSetWidth.current = track.scrollWidth / repeatCount;
-      if (initialOffset !== 0) {
-        xPos.current = initialOffset;
+    const wrapPosition = (position) => {
+      const period = singleSetWidth.current;
+      if (!period) return position;
+      return ((position % period) + period) % period - period;
+    };
+    const renderPosition = () => {
+      if (track) {
+        track.style.transform = `translate3d(${xPos.current}px, 0, 0)`;
       }
+    };
+    const measureWidth = () => {
+      const firstSet = track.children[0];
+      const secondSet = track.children[1];
+      const container = containerRef.current;
+      if (!firstSet || !secondSet || !container) return;
+
+      singleSetWidth.current = secondSet.offsetLeft - firstSet.offsetLeft;
+      const period = singleSetWidth.current;
+      if (period > 0) {
+        const requiredCopies = Math.max(
+          2,
+          Math.ceil(container.clientWidth / period) + 2,
+        );
+        setCopyCount((currentCount) =>
+          currentCount === requiredCopies ? currentCount : requiredCopies,
+        );
+      }
+      xPos.current = wrapPosition(xPos.current);
+      renderPosition();
     };
 
     measureWidth();
-    window.addEventListener('resize', measureWidth);
+    const resizeObserver =
+      "ResizeObserver" in window
+        ? new ResizeObserver(measureWidth)
+        : null;
+    resizeObserver?.observe(track);
+    if (containerRef.current) resizeObserver?.observe(containerRef.current);
+    if (!resizeObserver) window.addEventListener("resize", measureWidth);
 
     // Main 60/120fps physics loop
-    const animate = () => {
-      const half = singleSetWidth.current;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (prefersReducedMotion) {
+      return () => {
+        resizeObserver?.disconnect();
+        window.removeEventListener("resize", measureWidth);
+      };
+    }
 
+    let animationFrame = 0;
+    const animate = () => {
       if (!isDragging.current) {
         if (Math.abs(velocity.current) > 0.05) {
           // Inertia decay: velocity *= 0.94 as specified in requirements
@@ -65,28 +102,36 @@ function InteractiveMarqueeRow({
         }
       }
 
-      // Seamless infinite wrapping without visible jumps
-      if (half > 0) {
-        while (xPos.current <= -half) {
-          xPos.current += half;
-        }
-        while (xPos.current > 0) {
-          xPos.current -= half;
-        }
-      }
+      xPos.current = wrapPosition(xPos.current);
+      renderPosition();
 
-      if (track) {
-        track.style.transform = `translate3d(${xPos.current}px, 0, 0)`;
-      }
-
-      rafId.current = requestAnimationFrame(animate);
+      animationFrame = requestAnimationFrame(animate);
     };
 
-    rafId.current = requestAnimationFrame(animate);
+    const start = () => {
+      if (!animationFrame) animationFrame = requestAnimationFrame(animate);
+    };
+    const stop = () => {
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+      animationFrame = 0;
+    };
+    const container = containerRef.current;
+    const observer =
+      container && "IntersectionObserver" in window
+        ? new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) start();
+            else stop();
+          }, { rootMargin: "120px 0px" })
+        : null;
+
+    if (observer && container) observer.observe(container);
+    else start();
 
     return () => {
-      window.removeEventListener('resize', measureWidth);
-      if (rafId.current) cancelAnimationFrame(rafId.current);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", measureWidth);
+      observer?.disconnect();
+      stop();
     };
   }, [baseSpeed, initialOffset]);
 
@@ -103,10 +148,10 @@ function InteractiveMarqueeRow({
     const now = performance.now();
     const dt = Math.max(now - lastTime.current, 1);
     const dx = e.clientX - lastX.current;
-    
+
     xPos.current += dx;
     velocity.current = (dx / dt) * 16.6; // normalized velocity
-    
+
     lastX.current = e.clientX;
     lastTime.current = now;
   };
@@ -134,66 +179,62 @@ function InteractiveMarqueeRow({
       <div
         ref={trackRef}
         className="flex items-start gap-6 sm:gap-8 will-change-transform"
-        style={{ width: 'max-content' }}
+        style={{ width: "max-content" }}
       >
-        {displayItems.map((member, idx) => {
-          const isAriaDuplicate = idx >= items.length;
-          return (
-            <article
-              key={`${member.id}-${idx}`}
-              className="team-portrait-card"
-              aria-hidden={isAriaDuplicate ? 'true' : 'false'}
-            >
-              {/* 4:5 Portrait Image Container */}
-              <div className="team-image-container">
-                {member.image && (
-                  <img
-                    src={member.image}
-                    alt={`${member.name}, AWS Community Day Udaipur Core Team`}
-                    loading={idx < 4 ? 'eager' : 'lazy'}
-                    decoding="async"
-                    className="team-portrait-img"
-                    draggable="false"
-                  />
-                )}
+        {repeatedItems.map((set, setIndex) => (
+          <div
+            key={`team-marquee-set-${setIndex}`}
+            className="flex items-start gap-6 sm:gap-8"
+            aria-hidden={setIndex > 0 ? "true" : undefined}
+          >
+            {set.map((member, idx) => (
+              <article
+                key={`${member.id}-${setIndex}-${idx}`}
+                className="team-portrait-card"
+              >
+                <div className="team-image-container">
+                  {member.image && (
+                    <img
+                      src={member.image}
+                      alt={`${member.name}, AWS Community Day Udaipur Core Team`}
+                      loading="lazy"
+                      decoding="async"
+                      className="team-portrait-img"
+                      draggable="false"
+                    />
+                  )}
 
-                {/* Ambient dark edge vignette */}
-                <div className="team-image-vignette" />
+                  <div className="team-image-vignette" />
 
-                {/* Hover indicator: subtle orange metadata dot */}
-                <div className="team-hover-tag">
-                  <span className="team-tag-dot" />
-                  <span className="team-tag-text">CORE TEAM</span>
+                  <div className="team-hover-tag">
+                    <span className="team-tag-dot" />
+                    <span className="team-tag-text">CORE TEAM</span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Member Typography */}
-              <div className="team-meta-container">
-                <h3 className="team-member-name">
-                  {member.name}
-                </h3>
-                <p className="team-member-role">
-                  {member.role}
-                </p>
-                {member.linkedin && (
-                  <a
-                    className="team-member-linkedin"
-                    href={member.linkedin}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={`View ${member.name}'s LinkedIn profile`}
-                    title={`${member.name} on LinkedIn`}
-                    onPointerDown={(event) => event.stopPropagation()}
-                    onClick={(event) => event.stopPropagation()}
-                  >
-                    <LinkedInIcon size={16} />
-                    <span>LinkedIn</span>
-                  </a>
-                )}
-              </div>
-            </article>
-          );
-        })}
+                <div className="team-meta-container">
+                  <h3 className="team-member-name">{member.name}</h3>
+                  <p className="team-member-role">{member.role}</p>
+                  {member.linkedin && (
+                    <a
+                      className="team-member-linkedin"
+                      href={member.linkedin}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`View ${member.name}'s LinkedIn profile`}
+                      title={`${member.name} on LinkedIn`}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <LinkedInIcon size={16} />
+                      <span>LinkedIn</span>
+                    </a>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -218,13 +259,13 @@ export default function CoreTeam({ rows = [coreTeamRow1, coreTeamRow2] }) {
           opacity: 1,
           y: 0,
           duration: 1.1,
-          ease: 'power3.out',
+          ease: "power3.out",
           scrollTrigger: {
             trigger: headerRef.current,
-            start: 'top 85%',
-            toggleActions: 'play none none none'
-          }
-        }
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+        },
       );
 
       // ScrollTrigger reveal for marquee rows
@@ -235,13 +276,13 @@ export default function CoreTeam({ rows = [coreTeamRow1, coreTeamRow2] }) {
           opacity: 1,
           y: 0,
           duration: 1.2,
-          ease: 'power3.out',
+          ease: "power3.out",
           scrollTrigger: {
             trigger: marqueeContainerRef.current,
-            start: 'top 88%',
-            toggleActions: 'play none none none'
-          }
-        }
+            start: "top 88%",
+            toggleActions: "play none none none",
+          },
+        },
       );
     }, sectionRef);
 
@@ -265,17 +306,22 @@ export default function CoreTeam({ rows = [coreTeamRow1, coreTeamRow2] }) {
         {/* =================================================================== */}
         {/* 2. CORE TEAM HERO / EDITORIAL HEADING                               */}
         {/* =================================================================== */}
-        <div ref={headerRef} className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div
+          ref={headerRef}
+          className="flex flex-col md:flex-row md:items-end justify-between gap-8"
+        >
           <div>
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-xs font-mono font-medium text-zinc-400">04</span>
+              <span className="text-xs font-mono font-medium text-zinc-400">
+                04
+              </span>
               <div className="w-8 h-[1px] bg-white/20" />
               <span className="text-xs font-mono tracking-widest text-[#FF9900] uppercase">
                 CORE TEAM
               </span>
               <div className="w-1.5 h-1.5 rounded-full bg-zinc-600 hidden sm:block" />
               <span className="text-[11px] font-mono tracking-wider text-zinc-400 uppercase hidden sm:inline">
-                AWS USER GROUP UDAIPUR
+                AWS STUDENT BUILDER GROUP GITS
               </span>
             </div>
 
@@ -297,7 +343,10 @@ export default function CoreTeam({ rows = [coreTeamRow1, coreTeamRow2] }) {
       {/* =================================================================== */}
       {/* 3. TWO-ROW OPPOSITE-DIRECTION CONTINUOUS MARQUEE WALL               */}
       {/* =================================================================== */}
-      <div ref={marqueeContainerRef} className="flex flex-col gap-8 md:gap-12 w-full">
+      <div
+        ref={marqueeContainerRef}
+        className="flex flex-col gap-8 md:gap-12 w-full"
+      >
         {/* Row 01: Moves Left ← */}
         {rows.map((items, index) => (
           <InteractiveMarqueeRow

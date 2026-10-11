@@ -115,7 +115,19 @@ export default function Navbar() {
 
   useEffect(() => {
     let scrollFrame = 0;
-    const handleScroll = () => {
+    const updateProgress = () => {
+      const totalHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+      const progress =
+        totalHeight > 0
+          ? Math.min(Math.max(window.scrollY / totalHeight, 0), 1)
+          : 0;
+
+      if (progressRef.current) {
+        progressRef.current.style.transform = `scaleX(${progress})`;
+      }
+    };
+    const scheduleUpdate = () => {
       if (scrollFrame) return;
       scrollFrame = window.requestAnimationFrame(() => {
         scrollFrame = 0;
@@ -125,11 +137,7 @@ export default function Navbar() {
           previous === scrolled ? previous : scrolled,
         );
 
-        const totalHeight =
-          document.documentElement.scrollHeight - window.innerHeight;
-        if (totalHeight > 0 && progressRef.current) {
-          progressRef.current.style.transform = `scaleX(${scrollY / totalHeight})`;
-        }
+        updateProgress();
 
         if (routeSection) {
           setActiveSection((previous) =>
@@ -156,11 +164,32 @@ export default function Navbar() {
       });
     };
 
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    const resizeObserver =
+      "ResizeObserver" in window
+        ? new ResizeObserver(scheduleUpdate)
+        : null;
+    resizeObserver?.observe(document.documentElement);
+    if (document.body) resizeObserver?.observe(document.body);
+
+    scheduleUpdate();
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate, { passive: true });
+    window.addEventListener("load", scheduleUpdate);
+    window.visualViewport?.addEventListener("resize", scheduleUpdate);
+
+    let isMounted = true;
+    document.fonts?.ready.then(() => {
+      if (isMounted) scheduleUpdate();
+    });
+
     return () => {
+      isMounted = false;
       window.cancelAnimationFrame(scrollFrame);
-      window.removeEventListener("scroll", handleScroll);
+      resizeObserver?.disconnect();
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
+      window.removeEventListener("load", scheduleUpdate);
+      window.visualViewport?.removeEventListener("resize", scheduleUpdate);
     };
   }, [routeSection]);
 
@@ -200,7 +229,11 @@ export default function Navbar() {
 
   return (
     <nav className={`navbar ${isScrolled ? "scrolled glass" : ""}`}>
-      <div ref={progressRef} className="scroll-progress-bar" />
+      <div
+        ref={progressRef}
+        className="scroll-progress-bar"
+        aria-hidden="true"
+      />
 
       <div className="navbar-container container">
         <a href="/#home" className="logo" onClick={goHome}>

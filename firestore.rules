@@ -1,0 +1,39 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function validEmail(email) {
+      return email is string
+        && email.size() <= 254
+        && email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$');
+    }
+
+    match /emails/{documentId} {
+      allow create: if request.resource.data.keys().hasAll(['email'])
+        && request.resource.data.keys().hasOnly(['email'])
+        && validEmail(request.resource.data.email);
+      allow read, update, delete: if false;
+    }
+
+    match /messages/{documentId} {
+      allow create: if request.resource.data.keys().hasAll([
+          'username',
+          'email',
+          'message'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'username',
+          'email',
+          'message'
+        ])
+        && request.resource.data.username is string
+        && request.resource.data.username.size() > 0
+        && request.resource.data.username.size() <= 100
+        && validEmail(request.resource.data.email)
+        && request.resource.data.message is string
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 5000;
+      allow read, update, delete: if false;
+    }
+  }
+}

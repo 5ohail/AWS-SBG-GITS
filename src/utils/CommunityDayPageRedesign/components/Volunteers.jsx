@@ -14,16 +14,15 @@ gsap.registerPlugin(ScrollTrigger);
 // =============================================================================
 
 function VolunteerMarqueeRow({ items, direction = 'left', speed = 0.95, offset = 0, label = 'Row' }) {
+  const containerRef = useRef(null);
   const trackRef = useRef(null);
   const xPos = useRef(offset);
   const singleSetWidth = useRef(0);
-  const rafId = useRef(null);
   const isHovered = useRef(false);
   const baseSpeed = direction === 'left' ? -speed : speed;
 
-  // Repeat 5 times for dense continuous flowing community wall
-  const repeatCount = 5;
-  const displayItems = [...items, ...items, ...items, ...items, ...items];
+  const repeatCount = 2;
+  const displayItems = [...items, ...items];
 
   useEffect(() => {
     const track = trackRef.current;
@@ -38,8 +37,14 @@ function VolunteerMarqueeRow({ items, direction = 'left', speed = 0.95, offset =
     };
 
     measureWidth();
+
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    if (prefersReducedMotion) return undefined;
     window.addEventListener('resize', measureWidth);
 
+    let animationFrame = 0;
     const animate = () => {
       const step = isHovered.current ? baseSpeed * 0.4 : baseSpeed;
       xPos.current += step;
@@ -58,19 +63,38 @@ function VolunteerMarqueeRow({ items, direction = 'left', speed = 0.95, offset =
         track.style.transform = `translate3d(${xPos.current}px, 0, 0)`;
       }
 
-      rafId.current = requestAnimationFrame(animate);
+      animationFrame = requestAnimationFrame(animate);
     };
 
-    rafId.current = requestAnimationFrame(animate);
+    const start = () => {
+      if (!animationFrame) animationFrame = requestAnimationFrame(animate);
+    };
+    const stop = () => {
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+      animationFrame = 0;
+    };
+    const container = containerRef.current;
+    const observer =
+      container && 'IntersectionObserver' in window
+        ? new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) start();
+            else stop();
+          }, { rootMargin: '120px 0px' })
+        : null;
+
+    if (observer && container) observer.observe(container);
+    else start();
 
     return () => {
       window.removeEventListener('resize', measureWidth);
-      if (rafId.current) cancelAnimationFrame(rafId.current);
+      observer?.disconnect();
+      stop();
     };
   }, [baseSpeed, offset]);
 
   return (
     <div
+      ref={containerRef}
       className="marquee-edge-mask select-none py-2"
       onMouseEnter={() => { isHovered.current = true; }}
       onMouseLeave={() => { isHovered.current = false; }}
@@ -94,7 +118,7 @@ function VolunteerMarqueeRow({ items, direction = 'left', speed = 0.95, offset =
                 <img
                   src={volunteer.image}
                   alt={`${volunteer.name}, AWS Community Volunteer`}
-                  loading={idx < 6 ? 'eager' : 'lazy'}
+                  loading="lazy"
                   decoding="async"
                   className="volunteer-avatar-img"
                   draggable="false"

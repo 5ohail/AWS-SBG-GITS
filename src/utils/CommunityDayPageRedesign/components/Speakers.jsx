@@ -1,277 +1,29 @@
-import React, { useState, useRef, useEffect, useMemo, Suspense } from "react";
-import { Canvas, useFrame, useLoader } from "@react-three/fiber";
-import * as THREE from "three";
+import React, {
+  lazy,
+  Suspense,
+  useCallback,
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+} from "react";
 import gsap from "gsap";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import LinkedInIcon from "../../../components/LinkedInIcon";
 import { speakersData } from "../../communityDayData";
-import {
-  speakerVertexShader,
-  speakerFragmentShader,
-} from "../shaders/speakerTransitionShader";
+const SpeakerGallery = lazy(() => import("./SpeakerGallery"));
 
 // =============================================================================
-// 1. WEBGL SPEAKER PLANE WITH CHROMATIC GLITCH SHADER
-// =============================================================================
-
-function ActiveSpeakerPlane({
-  texture,
-  nextTexture,
-  progressRef,
-  directionRef,
-  parallaxRef,
-  hoverRef,
-  dragRef,
-  onPointerOver,
-  onPointerOut,
-}) {
-  const meshRef = useRef();
-
-  const uniforms = useMemo(
-    () => ({
-      uCurrentTexture: { value: texture },
-      uNextTexture: { value: nextTexture || texture },
-      uProgress: { value: 0.0 },
-      uDirection: { value: 1.0 },
-      uDistortion: { value: 1.2 },
-      uChromatic: { value: 1.4 },
-      uGlitch: { value: 1.0 },
-      uTime: { value: 0.0 },
-      uParallax: { value: new THREE.Vector2(0, 0) },
-      uHover: { value: 0.0 },
-      uOpacity: { value: 1.0 },
-      uIsActive: { value: 1.0 },
-    }),
-    [],
-  );
-
-  useEffect(() => {
-    if (meshRef.current) {
-      meshRef.current.material.uniforms.uCurrentTexture.value = texture;
-      meshRef.current.material.uniforms.uNextTexture.value =
-        nextTexture || texture;
-    }
-  }, [texture, nextTexture]);
-
-  useFrame((state) => {
-    if (!meshRef.current) return;
-    const mat = meshRef.current.material;
-    const t = state.clock.elapsedTime;
-
-    mat.uniforms.uTime.value = t;
-    mat.uniforms.uProgress.value = progressRef.current;
-    mat.uniforms.uDirection.value = directionRef.current;
-
-    // Smooth mouse parallax interpolation
-    mat.uniforms.uParallax.value.x = THREE.MathUtils.lerp(
-      mat.uniforms.uParallax.value.x,
-      parallaxRef.current.x,
-      0.08,
-    );
-    mat.uniforms.uParallax.value.y = THREE.MathUtils.lerp(
-      mat.uniforms.uParallax.value.y,
-      parallaxRef.current.y,
-      0.08,
-    );
-
-    // Smooth hover factor
-    mat.uniforms.uHover.value = THREE.MathUtils.lerp(
-      mat.uniforms.uHover.value,
-      hoverRef.current ? 1.0 : 0.0,
-      0.1,
-    );
-
-    // Dynamic horizontal drag displacement
-    const targetX = dragRef.current * 1.8;
-    meshRef.current.position.x = THREE.MathUtils.lerp(
-      meshRef.current.position.x,
-      targetX,
-      0.15,
-    );
-
-    // Micro-scale hover effect (1.00 -> 1.015)
-    const targetScale = hoverRef.current ? 1.015 : 1.0;
-    meshRef.current.scale.x = THREE.MathUtils.lerp(
-      meshRef.current.scale.x,
-      targetScale,
-      0.1,
-    );
-    meshRef.current.scale.y = THREE.MathUtils.lerp(
-      meshRef.current.scale.y,
-      targetScale,
-      0.1,
-    );
-  });
-
-  return (
-    <mesh
-      ref={meshRef}
-      position={[0, 0, 0]}
-      onPointerOver={onPointerOver}
-      onPointerOut={onPointerOut}
-    >
-      <planeGeometry args={[2.85, 3.65, 32, 32]} />
-      <shaderMaterial
-        vertexShader={speakerVertexShader}
-        fragmentShader={speakerFragmentShader}
-        uniforms={uniforms}
-        transparent={true}
-      />
-    </mesh>
-  );
-}
-
-// =============================================================================
-// 2. NEIGHBORING SPEAKER PREVIEW PLANES (LEFT & RIGHT EDGES)
-// =============================================================================
-
-function NeighborSpeakerPlane({
-  texture,
-  positionX,
-  scale = 0.78,
-  dragRef,
-  onClick,
-}) {
-  const meshRef = useRef();
-
-  useFrame(() => {
-    if (!meshRef.current) return;
-    const targetX = positionX + dragRef.current * 1.4;
-    meshRef.current.position.x = THREE.MathUtils.lerp(
-      meshRef.current.position.x,
-      targetX,
-      0.15,
-    );
-  });
-
-  return (
-    <mesh
-      ref={meshRef}
-      position={[positionX, 0, -0.4]}
-      scale={[scale, scale, scale]}
-      onClick={onClick}
-    >
-      <planeGeometry args={[2.85, 3.65]} />
-      <meshBasicMaterial
-        map={texture}
-        transparent={true}
-        opacity={0.38}
-        color="#888888"
-      />
-    </mesh>
-  );
-}
-
-// =============================================================================
-// 3. THREE.JS GALLERY SCENE CONTAINER
-// =============================================================================
-
-function SpeakerGalleryScene({
-  speakers,
-  currentIndex,
-  targetIndex,
-  progressRef,
-  directionRef,
-  parallaxRef,
-  hoverRef,
-  dragRef,
-  onPrev,
-  onNext,
-  onHoverChange,
-}) {
-  const imagePaths = useMemo(
-    () => speakers.map((speaker) => speaker.image),
-    [speakers],
-  );
-  const textures = useLoader(THREE.TextureLoader, imagePaths);
-
-  useEffect(() => {
-    textures.forEach((tex) => {
-      tex.minFilter = THREE.LinearFilter;
-      tex.magFilter = THREE.LinearFilter;
-      tex.generateMipmaps = false;
-    });
-  }, [textures]);
-
-  const count = speakers.length;
-  const prevIdx = (currentIndex - 1 + count) % count;
-  const nextIdx = (currentIndex + 1) % count;
-
-  return (
-    <group position={[0, 0, 0]}>
-      {/* Previous Speaker Plane (Left Flank) */}
-      <NeighborSpeakerPlane
-        texture={textures[prevIdx]}
-        positionX={-3.35}
-        dragRef={dragRef}
-        onClick={onPrev}
-      />
-
-      {/* Active Speaker Plane (Dominant Centerpiece) */}
-      <ActiveSpeakerPlane
-        texture={textures[currentIndex]}
-        nextTexture={textures[targetIndex]}
-        progressRef={progressRef}
-        directionRef={directionRef}
-        parallaxRef={parallaxRef}
-        hoverRef={hoverRef}
-        dragRef={dragRef}
-        onPointerOver={() => onHoverChange(true)}
-        onPointerOut={() => onHoverChange(false)}
-      />
-
-      {/* Next Speaker Plane (Right Flank) */}
-      <NeighborSpeakerPlane
-        texture={textures[nextIdx]}
-        positionX={3.35}
-        dragRef={dragRef}
-        onClick={onNext}
-      />
-    </group>
-  );
-}
-
-// =============================================================================
-// 4. ELEGANT DARK FALLBACK CARD
-// =============================================================================
-
-function SpeakerFallback({ speaker }) {
-  const initials = speaker.name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0])
-    .join("");
-
-  return (
-    <div className="w-full h-full flex items-center justify-center bg-[#070707] border border-white/10 rounded-sm p-8 text-center">
-      <div>
-        <div className="text-6xl font-light font-display text-zinc-600 mb-4 tracking-wider">
-          {initials}
-        </div>
-        <div className="text-lg font-medium text-white mb-1">
-          {speaker.name}
-        </div>
-        <div className="text-xs font-mono text-[#FF9900] uppercase tracking-widest mb-4">
-          {speaker.company}
-        </div>
-        <div className="w-8 h-[1px] bg-[#FF9900] mx-auto" />
-      </div>
-    </div>
-  );
-}
-
-// =============================================================================
-// 5. MAIN CINEMATIC SPEAKERS COMPONENT
+// MAIN CINEMATIC SPEAKERS COMPONENT
 // =============================================================================
 
 export default function Speakers({ speakers = speakersData }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [targetIndex, setTargetIndex] = useState(0);
-  const [isHovered, setIsHovered] = useState(false);
-
   const containerRef = useRef(null);
+  const galleryRef = useRef(null);
   const textContainerRef = useRef(null);
+  const hasChangedSlideRef = useRef(false);
 
   // Transition & Animation Refs
   const isAnimating = useRef(false);
@@ -296,7 +48,7 @@ export default function Speakers({ speakers = speakersData }) {
   // ---------------------------------------------------------------------------
   // TRANSITION CONTROLLER (GSAP + GLSL SHADER PROGRESS)
   // ---------------------------------------------------------------------------
-  const goToSlide = (newIndex, direction = 1) => {
+  const goToSlide = useCallback((newIndex, direction = 1) => {
     if (isAnimating.current || newIndex === currentIndex) return;
 
     // Check prefers-reduced-motion
@@ -312,70 +64,155 @@ export default function Speakers({ speakers = speakersData }) {
     dragRef.current = 0.0;
 
     if (prefersReducedMotion) {
-      // Instant switch with gentle opacity fade
       setCurrentIndex(newIndex);
+      setTargetIndex(newIndex);
       isAnimating.current = false;
       return;
     }
 
-    // 1. Staggered Exit Animation for Typography
     const elementsToExit = textContainerRef.current
       ? textContainerRef.current.querySelectorAll(".stagger-text")
       : [];
 
-    gsap.to(elementsToExit, {
-      y: direction > 0 ? -18 : 18,
-      opacity: 0,
-      duration: 0.22,
-      stagger: 0.03,
-      ease: "power2.in",
+    const exitDistance = direction > 0 ? -30 : 30;
+    const transitionDuration = usesPlaceholderGallery ? 0.38 : 0.85;
+    const timeline = gsap.timeline({
+      onComplete: () => {
+        setCurrentIndex(newIndex);
+        setTargetIndex(newIndex);
+        progressRef.current = 0;
+        isAnimating.current = false;
+
+        const elementsToEnter = textContainerRef.current
+          ? textContainerRef.current.querySelectorAll(".stagger-text")
+          : [];
+
+        gsap.fromTo(
+          elementsToEnter,
+          { y: direction > 0 ? 18 : -18, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: 0.42,
+            stagger: 0.05,
+            ease: "power2.out",
+          },
+        );
+      },
     });
 
-    // 2. Animate Shader Progress (0.0 -> 1.0)
-    gsap.fromTo(
-      progressRef,
-      { current: 0.0 },
-      {
-        current: 1.0,
-        duration: 0.85,
-        ease: "power3.inOut",
-        onComplete: () => {
-          // Transition complete: lock new index and return to idle
-          setCurrentIndex(newIndex);
-          setTargetIndex(newIndex);
-          progressRef.current = 0.0;
-          isAnimating.current = false;
-
-          // 3. Staggered Entrance Animation for New Typography
-          const elementsToEnter = textContainerRef.current
-            ? textContainerRef.current.querySelectorAll(".stagger-text")
-            : [];
-
-          gsap.fromTo(
-            elementsToEnter,
-            { y: direction > 0 ? 18 : -18, opacity: 0 },
-            {
-              y: 0,
-              opacity: 1,
-              duration: 0.42,
-              stagger: 0.05,
-              ease: "power2.out",
-            },
-          );
+    if (galleryRef.current) {
+      timeline.to(
+        galleryRef.current,
+        {
+          x: exitDistance,
+          scale: 0.94,
+          opacity: 0,
+          filter: "blur(8px)",
+          duration: transitionDuration,
+          ease: "power2.in",
         },
-      },
-    );
-  };
+        0,
+      );
+    }
 
-  const handleNext = () => {
+    timeline.to(
+      elementsToExit,
+      {
+        y: direction > 0 ? -18 : 18,
+        opacity: 0,
+        duration: 0.22,
+        stagger: 0.03,
+        ease: "power2.in",
+      },
+      0,
+    );
+    timeline.fromTo(
+      progressRef,
+      { current: 0 },
+      {
+        current: 1,
+        duration: transitionDuration,
+        ease: "power3.inOut",
+      },
+      0,
+    );
+  }, [currentIndex, usesPlaceholderGallery]);
+
+  const handleNext = useCallback(() => {
     const next = (currentIndex + 1) % totalSpeakers;
     goToSlide(next, 1.0);
-  };
+  }, [currentIndex, goToSlide, totalSpeakers]);
 
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     const prev = (currentIndex - 1 + totalSpeakers) % totalSpeakers;
     goToSlide(prev, -1.0);
-  };
+  }, [currentIndex, goToSlide, totalSpeakers]);
+
+  useEffect(() => {
+    if (totalSpeakers < 2) return undefined;
+
+    let autoplayTimer;
+    const scheduleNextSpeaker = () => {
+      window.clearTimeout(autoplayTimer);
+      if (document.visibilityState === "visible") {
+        autoplayTimer = window.setTimeout(handleNext, 8000);
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        scheduleNextSpeaker();
+      } else {
+        window.clearTimeout(autoplayTimer);
+      }
+    };
+
+    scheduleNextSpeaker();
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.clearTimeout(autoplayTimer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [currentIndex, handleNext, totalSpeakers]);
+
+  useLayoutEffect(() => {
+    const gallery = galleryRef.current;
+    if (!gallery) return;
+    if (!hasChangedSlideRef.current) {
+      hasChangedSlideRef.current = true;
+      return;
+    }
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      gsap.set(gallery, {
+        x: 0,
+        scale: 1,
+        opacity: 1,
+        clearProps: "filter",
+      });
+      return;
+    }
+
+    gsap.fromTo(
+      gallery,
+      {
+        x: directionRef.current > 0 ? 30 : -30,
+        scale: 0.94,
+        opacity: 0,
+        filter: "blur(8px)",
+      },
+      {
+        x: 0,
+        scale: 1,
+        opacity: 1,
+        filter: "blur(0px)",
+        duration: 0.62,
+        ease: "power3.out",
+        clearProps: "filter",
+      },
+    );
+  }, [currentIndex]);
 
   // ---------------------------------------------------------------------------
   // INTERACTIVE GESTURES: POINTER DRAG & VELOCITY TRACKING
@@ -466,11 +303,10 @@ export default function Speakers({ speakers = speakersData }) {
         container.removeEventListener("wheel", handleWheel);
       }
     };
-  }, [currentIndex]);
+  }, [handleNext, handlePrev]);
 
   const onHoverChange = (hovering) => {
     hoverRef.current = hovering;
-    setIsHovered(hovering);
   };
 
   return (
@@ -535,6 +371,7 @@ export default function Speakers({ speakers = speakersData }) {
           {/* Use static cards until every speaker has an image for the WebGL gallery. */}
           {usesPlaceholderGallery ? (
             <div
+              ref={galleryRef}
               className="community-speakers-placeholder-gallery"
               aria-hidden="true"
             >
@@ -558,7 +395,12 @@ export default function Speakers({ speakers = speakersData }) {
                       {speaker.placeholder ? (
                         <span>{initials}</span>
                       ) : (
-                        <img src={speaker.image} alt="" />
+                        <img
+                          src={speaker.image}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                        />
                       )}
                     </div>
                   );
@@ -566,31 +408,21 @@ export default function Speakers({ speakers = speakersData }) {
               )}
             </div>
           ) : (
-            <Canvas
-              camera={{ position: [0, 0, 5.8], fov: 38 }}
-              dpr={[1, Math.min(window.devicePixelRatio, 2)]}
-              gl={{
-                antialias: true,
-                powerPreference: "high-performance",
-                alpha: true,
-              }}
-            >
-              <Suspense fallback={null}>
-                <SpeakerGalleryScene
-                  speakers={speakers}
-                  currentIndex={currentIndex}
-                  targetIndex={targetIndex}
-                  progressRef={progressRef}
-                  directionRef={directionRef}
-                  parallaxRef={parallaxRef}
-                  hoverRef={hoverRef}
-                  dragRef={dragRef}
-                  onPrev={handlePrev}
-                  onNext={handleNext}
-                  onHoverChange={onHoverChange}
-                />
-              </Suspense>
-            </Canvas>
+            <Suspense fallback={null}>
+              <SpeakerGallery
+                speakers={speakers}
+                currentIndex={currentIndex}
+                targetIndex={targetIndex}
+                progressRef={progressRef}
+                directionRef={directionRef}
+                parallaxRef={parallaxRef}
+                hoverRef={hoverRef}
+                dragRef={dragRef}
+                onPrev={handlePrev}
+                onNext={handleNext}
+                onHoverChange={onHoverChange}
+              />
+            </Suspense>
           )}
 
           {/* Minimal Floating Navigation Arrows */}
