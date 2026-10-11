@@ -126,7 +126,7 @@ function EventNav() {
           A<span>W</span>S
         </span>
         <span className="event-brand-name">
-          Community Day <i>Rajasthan</i>
+          Community Day <i>Udaipur</i>
         </span>
       </a>
       <nav
@@ -496,7 +496,7 @@ export default function CommunityDayPage() {
           <div className="hero-gridlines" aria-hidden="true" />
           <div className="hero-copy">
             <p className="hero-kicker">
-              <span /> AWS STUDENT BUILDER CLUB · GITS{" "}
+              <span /> AWS STUDENT BUILDER GROUP · GITS{" "}
               <span className="hero-kicker-rule" />
             </p>
             <h1 className="hero-title">
@@ -602,9 +602,7 @@ export default function CommunityDayPage() {
         <div className="community-day-redesign cd-speakers-theme cd-community-sections">
           <Speakers speakers={communityDaySpeakers} />
           <CoreTeam rows={communityCoreTeamRows} />
-          <Volunteers
-            rows={communityVolunteerRows}
-          />
+          <Volunteers rows={communityVolunteerRows} />
         </div>
 
         <section className="schedule-section event-section-night" id="schedule">

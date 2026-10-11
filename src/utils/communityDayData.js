@@ -2,12 +2,12 @@
 export const eventInfo = {
   title: "AWS Student Community Day",
   tagline:
-    "From the dunes of Udaipur to the cloud — students, builders, and professionals gathering at GITS.",
-  date: "Date to be announced",
-  time: "09:00 AM – 5:00 PM IST",
-  location: "Geetanjali Institute of Technical Studies (GITS)",
+    "From the dunes of Udaipur to the cloud — students, builders, and professionals gathering at 3rd Space, Udaipur.",
+  date: "31 Oct 2026",
+  time: "10:00 AM – 4:00 PM IST",
+  location: "3rd Space, Arihant Nagar, Udaipur",
   venue: "Main Auditorium & Innovation Block, Dabok, Udaipur, Rajasthan",
-  city: "Udaipur, Rajasthan",
+  city: "3rd Space, Udaipur",
   college: "Geetanjali Institute of Technical Studies",
 };
 
