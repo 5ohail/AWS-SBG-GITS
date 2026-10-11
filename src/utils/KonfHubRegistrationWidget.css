@@ -76,9 +76,12 @@
 }
 
 .konfhub-modal {
-  width: min(960px, 100%);
+  display: flex;
+  flex-direction: column;
+  width: min(1200px, 96vw);
+  height: min(900px, 94dvh);
   max-width: 100% !important;
-  max-height: calc(100dvh - 32px);
+  max-height: calc(100dvh - 24px);
   overflow: hidden;
   border: 1px solid rgba(255, 247, 236, 0.2);
   border-radius: 12px;
@@ -90,6 +93,7 @@
 
 .konfhub-modal-header {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
@@ -111,6 +115,26 @@
   font-size: clamp(1rem, 2.5vw, 1.2rem);
   font-weight: 600;
   line-height: 1.35;
+}
+
+.konfhub-modal-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.konfhub-open-full-page {
+  color: #ffb15e;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.konfhub-open-full-page:hover {
+  color: #ffd08a;
+  text-decoration: underline;
 }
 
 .konfhub-modal-close {
@@ -143,7 +167,8 @@
 
 .konfhub-registration-frame-wrap {
   position: relative;
-  min-height: 320px;
+  flex: 1 1 auto;
+  min-height: 0;
   background: #121d2b;
 }
 
@@ -179,8 +204,8 @@
 .konfhub-registration-frame {
   display: block;
   width: 100%;
-  height: min(500px, calc(100dvh - 112px));
-  min-height: 320px;
+  height: 100%;
+  min-height: 0;
   border: 0;
   background: #121d2b;
   cursor: auto !important;
@@ -199,27 +224,46 @@ body.custom-cursor-active .konfhub-modal-backdrop * {
 
 @media (max-width: 600px) {
   .konfhub-modal-backdrop {
-    align-items: flex-start !important;
-    padding: 10px !important;
+    padding: 8px !important;
   }
 
   .konfhub-modal {
-    max-height: calc(100dvh - 20px);
+    width: 100%;
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
     border-radius: 8px;
   }
 
   .konfhub-modal-header {
-    padding: 0.875rem 1rem;
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .konfhub-modal-header h2 {
+    max-width: 14rem;
+    font-size: 0.95rem;
+  }
+
+  .konfhub-modal-actions {
+    gap: 0.5rem;
+  }
+
+  .konfhub-open-full-page {
+    font-size: 0.68rem;
+  }
+
+  .konfhub-modal-close {
+    flex-basis: 2.25rem;
+    width: 2.25rem;
+    height: 2.25rem;
   }
 
   .konfhub-registration-frame {
-    height: min(500px, calc(100dvh - 94px));
-    min-height: 280px;
+    min-height: 0;
   }
 
-  .konfhub-registration-frame-wrap,
   .konfhub-registration-loading {
-    min-height: 280px;
+    min-height: 0;
   }
 }
 

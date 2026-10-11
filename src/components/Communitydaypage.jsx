@@ -509,7 +509,7 @@ export default function CommunityDayPage() {
             aria-hidden="true"
             tabIndex={-1}
           >
-            <source src="/assets/back.mp4" type="video/mp4" />
+            <source src="/assets/back-optimized.mp4" type="video/mp4" />
           </video>
           <div className="hero-gridlines" aria-hidden="true" />
           <div className="hero-copy">
@@ -518,7 +518,10 @@ export default function CommunityDayPage() {
               <span className="hero-kicker-rule" />
             </p>
             <h1 className="hero-title">
-              <span className="hero-title-line">Community</span>
+              <span className="hero-title-line hero-title-first">
+                <span className="hero-title-brand">AWS</span>
+                <span className="hero-title-community">Community</span>
+              </span>
               <span className="hero-title-line hero-title-second">
                 Day <i>Udaipur</i>
               </span>
@@ -594,7 +597,7 @@ export default function CommunityDayPage() {
               <div>
                 <span>LOCATION</span>
                 <strong>{eventInfo.city}</strong>
-                <small>{eventInfo.college}</small>
+                <small>{eventInfo.location}</small>
               </div>
             </div>
           </div>

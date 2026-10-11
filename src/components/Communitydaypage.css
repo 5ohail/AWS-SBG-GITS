@@ -212,7 +212,9 @@
 }
 .hero-kicker {
   color: #e3ac71;
-  margin-bottom: 26px;
+  margin-bottom: 20px;
+  font-size: 10px;
+  letter-spacing: 0.19em;
 }
 .hero-kicker > span:first-child,
 .event-eyebrow > span {
@@ -231,24 +233,43 @@
 .hero-title {
   margin: 0;
   font:
-    600 clamp(68px, 10.6vw, 158px)/0.91 Manrope,
+    600 clamp(42px, 8vw, 104px)/0.98 "Space Grotesk",
     sans-serif;
-  letter-spacing: -0.085em;
+  letter-spacing: -0.075em;
   color: #fff7ec;
+  text-wrap: balance;
+  font-kerning: normal;
 }
 .hero-title-line {
   display: block;
   overflow: hidden;
-  padding-bottom: 0.08em;
+  padding: 0.03em 0.08em 0.12em 0;
   clip-path: inset(0);
+}
+.hero-title-first {
+  display: flex;
+  align-items: baseline;
+  gap: 0.17em;
+  white-space: nowrap;
+}
+.hero-title-brand {
+  color: #ffae63;
+  font-weight: 700;
+}
+.hero-title-community {
+  color: #fffaf2;
 }
 .hero-title-second {
   color: #fff7ec;
   white-space: nowrap;
+  font-weight: 600;
+  letter-spacing: -0.06em;
 }
 .hero-title-second i {
-  color: #d17a50;
+  color: #f0a06b;
   font-style: normal;
+  font-family: Manrope, "Space Grotesk", sans-serif;
+  font-weight: 700;
 }
 .hero-title-year {
   position: absolute;
@@ -1462,7 +1483,8 @@
     margin-top: 45px;
   }
   .hero-title {
-    font-size: clamp(64px, 12.7vw, 110px);
+    font-size: clamp(42px, 8vw, 82px);
+    line-height: 0.98;
   }
   .hero-architecture {
     right: -23%;
@@ -1584,11 +1606,8 @@
     width: 18px;
   }
   .hero-title {
-    font-size: clamp(58px, 14vw, 78px);
-    line-height: 0.96;
-  }
-  .hero-title-second {
-    white-space: normal;
+    font-size: clamp(30px, 9.8vw, 42px);
+    line-height: 1;
   }
   .hero-title-year {
     left: 44%;
@@ -1904,7 +1923,8 @@
     margin-top: 24px;
   }
   .cd-page .hero-title {
-    font-size: clamp(40px, 12.4vw, 47px);
+    font-size: clamp(30px, 10vw, 38px);
+    line-height: 1;
   }
   .cd-page .hero-kicker {
     font-size: 7px;

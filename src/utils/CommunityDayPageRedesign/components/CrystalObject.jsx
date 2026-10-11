@@ -276,7 +276,7 @@ export default function CrystalObject({ mouse, scrollProgress }) {
   const { size, viewport } = useThree();
 
   // Load Udaipur Palace Night texture as the background environment
-  const backgroundTexture = useLoader(THREE.TextureLoader, '/assets/udaipur_palace.jpg');
+  const backgroundTexture = useLoader(THREE.TextureLoader, '/assets/udaipur_palace.webp');
   backgroundTexture.wrapS = THREE.ClampToEdgeWrapping;
   backgroundTexture.wrapT = THREE.ClampToEdgeWrapping;
   backgroundTexture.minFilter = THREE.LinearFilter;

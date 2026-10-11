@@ -69,15 +69,25 @@ export function KonfHubRegistrationProvider({ children }) {
                   Register for AWS Student Community Day
                 </h2>
               </div>
-              <button
-                ref={closeButtonRef}
-                className="konfhub-modal-close"
-                type="button"
-                onClick={closeRegistration}
-                aria-label="Close registration"
-              >
-                <span aria-hidden="true">&times;</span>
-              </button>
+              <div className="konfhub-modal-actions">
+                <a
+                  className="konfhub-open-full-page"
+                  href={REGISTRATION_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Open full page <span aria-hidden="true">↗</span>
+                </a>
+                <button
+                  ref={closeButtonRef}
+                  className="konfhub-modal-close"
+                  type="button"
+                  onClick={closeRegistration}
+                  aria-label="Close registration"
+                >
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
             </header>
             <div className="konfhub-registration-frame-wrap">
               {!frameLoaded && (
@@ -93,7 +103,8 @@ export function KonfHubRegistrationProvider({ children }) {
                 title="Register for AWS Student Community Day"
                 width="100%"
                 height="500"
-                allow="payment"
+                allow="payment *; clipboard-write"
+                allowFullScreen
                 onLoad={() => setFrameLoaded(true)}
               />
             </div>

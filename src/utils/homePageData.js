@@ -115,7 +115,7 @@ export const coreTeamMembers = [
     name: "Bhavesh Suthar",
     role: "Tech Lead Cloud Infra",
     band: "Tech",
-    photo: "/team/t3.png",
+    photo: "/team/t3.webp",
     intro:
       "I work at the intersection of cloud infrastructure, networking, and DevOps, leading hands-on AWS initiatives at the AWS Student Builder Club, GITS. My focus is on making cloud learning practical — from deploying real workloads to understanding the infrastructure behind them.",
     position: "Tech Lead (Cloud Infra), AWS Student Builder Club · GITS",
@@ -599,7 +599,7 @@ export const sampleEvents = [
     time: "10:00 AM – 4:00 PM",
     location: "3rd Space Udaipur",
     speaker: "AWS Student Builder Group, GITS",
-    image: "cd.jpeg",
+    image: "cd.webp",
     category: "AWS Community Day",
     difficulty: "All levels",
     format: "Offline",
@@ -617,14 +617,14 @@ export const whatWeDoEvents = [
     title: "Introduction to Cloud Computing",
     description:
       "Learn the fundamentals of cloud computing, how cloud services work, and where they are used.",
-    image: "whatwedo1.jpg",
+    image: "whatwedo1.webp",
     category: "Cloud Fundamentals",
   },
   {
     title: "Expert Talk on Cloud Computing",
     description:
       "Featuring Akshat S, a software engineering specialist focused on observability and DevOps, with AWS SLA and CLP certifications and previous experience at MBRDI.",
-    image: "whatwedo2.jpeg",
+    image: "whatwedo2.webp",
     category: "Expert Talk",
   },
   {
@@ -639,14 +639,14 @@ export const whatWeDoEvents = [
     title: "Static Website Hosting on AWS S3",
     description:
       "Learn the core steps for hosting a static website with Amazon S3.",
-    image: "whatwedo4.jpeg",
+    image: "whatwedo4.webp",
     category: "Hands-on Lab",
   },
   {
     title: "Introduction to Serverless Computing",
     description:
       "Explore how serverless computing works and when it can be useful.",
-    image: "whatwedo5.jpeg",
+    image: "whatwedo5.webp",
     category: "Cloud Concepts",
   },
 ];
