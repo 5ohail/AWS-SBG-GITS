@@ -172,7 +172,7 @@ export const coreTeamMembers = [
   {
     id: "Tech Lead",
     name: "Sohail Ansari",
-    role: "Tech Lead",
+    role: "Tech Lead - Workshops & Projects",
     band: "Tech",
     photo: "/team/t2.jpeg",
     intro:
