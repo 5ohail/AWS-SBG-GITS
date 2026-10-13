@@ -2,26 +2,64 @@
 export const eventInfo = {
   title: "AWS Student Community Day",
   tagline:
-    "From the dunes of Udaipur to the cloud — students, builders, and professionals gathering at GITS.",
-  date: "Date to be announced",
-  time: "09:00 AM – 5:00 PM IST",
-  location: "Geetanjali Institute of Technical Studies (GITS)",
-  venue: "Main Auditorium & Innovation Block, Dabok, Udaipur, Rajasthan",
+    "From the dunes of Udaipur to the cloud — students, builders, and professionals gathering at 3rd Space, Udaipur.",
+  date: "31 Oct 2026",
+  time: "10:00 AM – 4:00 PM IST",
+  location: "3rd Space, Arihant Nagar, Udaipur",
+  venue: "Cinema Hall, Ground floor",
   city: "Udaipur, Rajasthan",
   college: "Geetanjali Institute of Technical Studies",
 };
 
+export const venueSectionData = {
+  heading: {
+    eyebrow: "A place to meet",
+    title: "Find your place in Udaipur.",
+    subtitle:
+      "One day of cloud, community, and new connections—together at 3rd Space.",
+  },
+  name: "3rd Space, Udaipur",
+  address: eventInfo.location,
+  room: eventInfo.venue,
+  date: eventInfo.date,
+  time: eventInfo.time,
+  city: eventInfo.city,
+  mapUrl:
+    "https://www.google.com/maps/search/?api=1&query=3rd%20Space%2C%20Arihant%20Nagar%2C%20Udaipur%2C%20India",
+  photos: [
+    {
+      layout: "city",
+      src: "/venue/v1.webp",
+      alt: "Udaipur City Palace glowing above Lake Pichola at dusk",
+      label: "UDAIPUR · RAJASTHAN",
+      caption: "A city made for moments.",
+    },
+    {
+      layout: "community",
+      src: "/venue/v2.webp",
+      alt: "Community members sharing a moment at a student event",
+      label: "COMMUNITY, TOGETHER",
+    },
+    {
+      layout: "builders",
+      src: "/venue/v3.webp",
+      alt: "Student builders gathered at a community event",
+      label: "BUILT BY THE COMMUNITY",
+    },
+  ],
+};
+
 export const stats = [
-  { label: "Expected attendees", value: 400, suffix: "+" },
-  { label: "Speakers", value: 12, suffix: "+" },
-  { label: "Sessions", value: 10, suffix: "" },
-  { label: "Hours of cloud", value: 8, suffix: "+" },
+  { label: "Expected attendees", value: 150, suffix: "+" },
+  { label: "Speakers", value: 6, suffix: "" },
+  { label: "Sessions", value: 8, suffix: "" },
+  { label: "Hours of cloud", value: 6, suffix: "" },
 ];
 
 export const tracks = [
   "Cloud Native / DevOps",
   "FinOps",
-  "Architecture & Security",
+  "Kubernetes",
   "Student Builders",
   "Community & Career",
   "Hands-on Labs",
@@ -52,7 +90,7 @@ export const eventSpeakers = [
   {
     name: "Lakhan Dadhich",
     role: "Devops Engineer",
-    image: "/speakers/s4.png",
+    image: "/speakers/s4.webp",
     linkedin: "https://www.linkedin.com/in/lakhan-dadhich-77a801230/",
   },
   { name: "Speaker TBA", role: "Student Builder", image: null, linkedin: null },
@@ -61,25 +99,19 @@ export const eventSpeakers = [
 
 export const schedule = [
   {
-    time: "08:30 – 09:30",
-    title: "Registration & Breakfast",
-    desc: "Check in at the GITS auditorium foyer and grab refreshments.",
-    type: "registration",
-  },
-  {
-    time: "09:30 – 09:50",
+    time: "10:00 – 10:15",
     title: "Welcome Note",
     desc: "Opening by AWS Student Builder Club, GITS.",
     type: "talk",
   },
   {
-    time: "09:50 – 10:40",
+    time: "10:15 – 11:15",
     title: "Keynote",
     desc: "The student path into cloud, community, and real-world AWS.",
     type: "talk",
   },
   {
-    time: "10:50 – 11:35",
+    time: "11:15 – 11:35",
     title: "Technical Talks + Quiz Round 1",
     desc: "Architecture, IAM, and building on AWS.",
     type: "quiz",
@@ -115,7 +147,7 @@ export const schedule = [
     type: "panel",
   },
   {
-    time: "15:50 – 16:30",
+    time: "15:50 – 16:00",
     title: "Closing Ceremony",
     desc: "Awards, contest winners, swag, and group photo.",
     type: "ceremony",
@@ -127,7 +159,7 @@ export const sponsors = {
   gold: [{ name: "Sponsor TBA" }],
   community: [
     { name: "AWS Student Builder Club, GITS" },
-    { name: "Geetanjali Institute of Technical Studies" },
+    // { name: "Geetanjali Institute of Technical Studies" },
     { name: "Community Partner TBA" },
     { name: "Community Partner TBA" },
   ],
@@ -149,7 +181,7 @@ export const coreTeam = [
   {
     name: "Bhavesh Suthar",
     role: "Tech Lead",
-    image: "/team/t3.png",
+    image: "/team/t3.webp",
     linkedin: "https://www.linkedin.com/in/bhavesh-suthar-048587332/",
   },
   {
@@ -181,16 +213,16 @@ export const coreTeam = [
 
 export const faqs = [
   {
-    q: "Who can attend AWS Student Community Day at GITS?",
+    q: "Who can attend AWS Student Community Day at 3rd Space Udaipur?",
     a: "Students from GITS and other colleges, plus early-career builders interested in AWS, cloud, and community. Registration is required.",
   },
   {
     q: "Where is the venue and how do I reach it?",
-    a: "Geetanjali Institute of Technical Studies, Dabok, Udaipur, Rajasthan. Sessions run from the Main Auditorium with labs in the Innovation Block. Campus directions will be emailed to registered attendees.",
+    a: "The Event is at 3rd Space Shyam Nagar, Pulla Bhuwana, Arihant Nagar, Pahada, Bhuwana, Rajasthan (313001) in Cinema Hall at Ground Floor, Personal Vehicles or Public Transport from Pratap Nagar.",
   },
   {
     q: "Is this a paid event?",
-    a: "Community Day is designed as a free student event, subject to registration capacity. Any change will be announced on this page and by email.",
+    a: "Yes the Event will be paid the prices are decided to be ₹100 for early bird passes.",
   },
   {
     q: "Will I get a certificate or swag?",
@@ -198,7 +230,7 @@ export const faqs = [
   },
   {
     q: "Who organizes this?",
-    a: "AWS Student Builder Club at Geetanjali Institute of Technical Studies, with support from faculty mentors, volunteers, and community partners.",
+    a: "AWS Student Builder Group at Geetanjali Institute of Technical Studies, with support from mentors, volunteers, and community partners.",
   },
   {
     q: "How do I ask something else?",
@@ -241,40 +273,6 @@ export const eventData = {
     github: "https://github.com/aws-community-udaipur",
   },
 };
-
-// faq
-export const faqData = [
-  {
-    question: "What is AWS Community Day Udaipur?",
-    answer:
-      "AWS Community Day Udaipur 2026 is a premier, community-organized technical conference organized by passionate AWS User Group leaders, cloud architects, and builders. It brings together industry luminaries, AWS heroes, researchers, and students for in-depth technical keynotes, architecture breakdowns, and peer networking.",
-  },
-  {
-    question: "Where and when is the conference taking place?",
-    answer:
-      "The event will be hosted in-person on Saturday, February 28, 2026, at the Geetanjali Institute of Technical Studies (GITS), Airport Road, Dabok, Udaipur, Rajasthan. The campus is conveniently situated near Udaipur Airport (UDR).",
-  },
-  {
-    question: "How do I register and receive my ticket?",
-    answer:
-      "Registration is hosted exclusively through our official ticketing partner KonfHub. Simply click the 'Register on KonfHub' button anywhere on this page to select your ticket tier (Professional, Student, or Diversity Pass). Your QR-code badge will be emailed immediately upon confirmation.",
-  },
-  {
-    question: "Are student and diversity discounts available?",
-    answer:
-      "Yes. AWS User Group Udaipur is deeply committed to empowering aspiring builders. A limited allotment of subsidized student passes is available on KonfHub upon verification of a valid academic ID.",
-  },
-  {
-    question: "Will lunch, refreshments, and conference swag be provided?",
-    answer:
-      "All confirmed attendees receive full access to the keynote and parallel tracks, limited-edition AWS Community Day Udaipur merchandise (hoodie, t-shirt, stickers, badge), artisanal morning coffee, an authentic Rajasthani lunch, and evening networking high-tea.",
-  },
-  {
-    question: "Can I submit a talk or workshop proposal?",
-    answer:
-      "Our Call for Proposals (CFP) is open via Sessionize until January 15, 2026. We welcome technical talks on Cloud Architecture, GenAI/Bedrock, Kubernetes, Serverless, DevSecOps, and real-world scale stories.",
-  },
-];
 
 // schedule
 export const scheduleData = [
@@ -609,7 +607,7 @@ export const volunteersRow1 = [
     name: "Divya Mehta",
     role: "Event Host",
     track: "AWS Workshops",
-    image: "/volunteers/v4.jpeg",
+    image: "/volunteers/v4.webp",
   },
   {
     id: "vol-05",
@@ -630,7 +628,7 @@ export const volunteersRow1 = [
     name: "Rohit Suthar",
     role: "Logistics & Quiz",
     track: "AWS Workshops",
-    image: "/volunteers/v7.jpeg",
+    image: "/volunteers/v7.webp",
   },
   {
     id: "vol-08",
@@ -668,7 +666,7 @@ export const volunteersRow2 = [
     name: "Divya Mehta",
     role: "Event Host",
     track: "AWS Workshops",
-    image: "/volunteers/v4.jpeg",
+    image: "/volunteers/v4.webp",
   },
   {
     id: "vol-05",
@@ -689,7 +687,7 @@ export const volunteersRow2 = [
     name: "Rohit Suthar",
     role: "Logistics & Quiz",
     track: "AWS Workshops",
-    image: "/volunteers/v7.jpeg",
+    image: "/volunteers/v7.webp",
   },
   {
     id: "vol-08",
@@ -727,7 +725,7 @@ export const volunteersRow3 = [
     name: "Divya Mehta",
     role: "Event Host",
     track: "AWS Workshops",
-    image: "/volunteers/v4.jpeg",
+    image: "/volunteers/v4.webp",
   },
   {
     id: "vol-05",
@@ -748,7 +746,7 @@ export const volunteersRow3 = [
     name: "Rohit Suthar",
     role: "Logistics & Quiz",
     track: "AWS Workshops",
-    image: "/volunteers/v7.jpeg",
+    image: "/volunteers/v7.webp",
   },
   {
     id: "vol-08",

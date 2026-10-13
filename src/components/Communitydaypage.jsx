@@ -33,6 +33,7 @@ import {
   schedule,
   sponsors,
   faqs,
+  venueSectionData,
   volunteersRow1,
   volunteersRow2,
   volunteersRow3,
@@ -43,6 +44,7 @@ import CoreTeam from "../utils/CommunityDayPageRedesign/components/CoreTeam";
 import Volunteers from "../utils/CommunityDayPageRedesign/components/Volunteers";
 import "../utils/CommunityDayPageRedesign/styles/globals.css";
 import "./Communitydaypage.css";
+import heroPoster from "../assets/hero_cd.jpg";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -53,6 +55,7 @@ const sections = [
   ["Core Team", "team"],
   ["Volunteers", "volunteers"],
   ["Schedule", "schedule"],
+  ["Venue", "venue"],
   ["Sponsors", "sponsors"],
   ["FAQ", "faq"],
 ];
@@ -126,7 +129,7 @@ function EventNav() {
           A<span>W</span>S
         </span>
         <span className="event-brand-name">
-          Community Day <i>Rajasthan</i>
+          Community Day <i>Udaipur</i>
         </span>
       </a>
       <nav
@@ -248,10 +251,10 @@ function EventTracks() {
     >
       <div className="tracks-inner">
         <SectionHeading
-          number="02 / 06"
+          number="02 / 07"
           eyebrow="What you will explore"
           title="Event tracks"
-          subtitle="Six threads across cloud, AI, architecture, and community — all on campus at GITS."
+          subtitle="Six threads across cloud, AI, architecture, and community — all at 3rd Space, Udaipur."
           light
         />
         <div className="track-rail-clip">
@@ -403,11 +406,11 @@ function CommunityDayFooter() {
   return (
     <footer className="event-footer">
       <div className="event-footer-mark" aria-hidden="true">
-        AWS<span> Rajasthan</span>
+        AWS<span> Udaipur</span>
       </div>
       <div className="event-footer-main">
         <div>
-          <Eyebrow light>AWS STUDENT BUILDER CLUB · GITS</Eyebrow>
+          <Eyebrow light>AWS STUDENT BUILDER GROUP · GITS</Eyebrow>
           <h2>
             Build something
             <br />
@@ -419,8 +422,10 @@ function CommunityDayFooter() {
         </a>
       </div>
       <div className="event-footer-bottom">
-        <span>AWS Community Day Rajasthan</span>
-        <span>© {new Date().getFullYear()} AWS Student Builder Club, GITS</span>
+        <span>AWS Community Day Udaipur</span>
+        <span>
+          © {new Date().getFullYear()} AWS Student Builder Group, GITS
+        </span>
         <KonfHubRegistrationWidget>
           Register your interest
         </KonfHubRegistrationWidget>
@@ -493,14 +498,30 @@ export default function CommunityDayPage() {
       <EventNav />
       <main>
         <section className="event-hero" id="community-hero">
+          <video
+            className="event-hero-video"
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            poster={heroPoster}
+            aria-hidden="true"
+            tabIndex={-1}
+          >
+            <source src="/assets/back-optimized.mp4" type="video/mp4" />
+          </video>
           <div className="hero-gridlines" aria-hidden="true" />
           <div className="hero-copy">
             <p className="hero-kicker">
-              <span /> AWS STUDENT BUILDER CLUB · GITS{" "}
+              <span /> AWS STUDENT BUILDER GROUP · GITS{" "}
               <span className="hero-kicker-rule" />
             </p>
             <h1 className="hero-title">
-              <span className="hero-title-line">Community</span>
+              <span className="hero-title-line hero-title-first">
+                <span className="hero-title-brand">AWS</span>
+                <span className="hero-title-community">Community</span>
+              </span>
               <span className="hero-title-line hero-title-second">
                 Day <i>Udaipur</i>
               </span>
@@ -542,7 +563,7 @@ export default function CommunityDayPage() {
           </span>
           <div className="about-inner">
             <SectionHeading
-              number="01 / 06"
+              number="01 / 07"
               eyebrow="About AWS Community Day 2026"
               title="Building AWSome — together."
             />
@@ -576,7 +597,7 @@ export default function CommunityDayPage() {
               <div>
                 <span>LOCATION</span>
                 <strong>{eventInfo.city}</strong>
-                <small>{eventInfo.college}</small>
+                <small>{eventInfo.location}</small>
               </div>
             </div>
           </div>
@@ -602,15 +623,13 @@ export default function CommunityDayPage() {
         <div className="community-day-redesign cd-speakers-theme cd-community-sections">
           <Speakers speakers={communityDaySpeakers} />
           <CoreTeam rows={communityCoreTeamRows} />
-          <Volunteers
-            rows={communityVolunteerRows}
-          />
+          <Volunteers rows={communityVolunteerRows} />
         </div>
 
         <section className="schedule-section event-section-night" id="schedule">
           <div className="schedule-inner">
             <SectionHeading
-              number="04 / 06"
+              number="04 / 07"
               eyebrow="One desert day"
               title="A day with room to build."
               subtitle="Sunrise check-in to sunset closing — times may shift slightly as speakers lock in."
@@ -620,10 +639,77 @@ export default function CommunityDayPage() {
           </div>
         </section>
 
+        <section className="venue-section event-section-night" id="venue">
+          <div className="venue-inner">
+            <SectionHeading
+              number="05 / 07"
+              eyebrow={venueSectionData.heading.eyebrow}
+              title={venueSectionData.heading.title}
+              subtitle={venueSectionData.heading.subtitle}
+              light
+            />
+
+            <div
+              className="venue-collage"
+              aria-label="Udaipur and community moments"
+            >
+              {venueSectionData.photos.map((photo) => (
+                <figure
+                  className={`venue-photo venue-photo-${photo.layout}`}
+                  key={photo.src}
+                >
+                  <img
+                    src={photo.src}
+                    alt={photo.alt}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <figcaption>
+                    <span>{photo.label}</span>
+                    {photo.caption && <strong>{photo.caption}</strong>}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+
+            <div className="venue-details">
+              <div className="venue-address">
+                <span className="venue-detail-label">THE VENUE</span>
+                <h3>{venueSectionData.name}</h3>
+                <p>
+                  {venueSectionData.address} · {venueSectionData.room}
+                </p>
+                <a
+                  href={venueSectionData.mapUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="venue-map-link"
+                >
+                  <MapPin size={15} />
+                  Open in Google Maps
+                  <ArrowRight size={15} />
+                </a>
+              </div>
+              <div className="venue-facts">
+                <div>
+                  <span className="venue-detail-label">WHEN</span>
+                  <strong>{venueSectionData.date}</strong>
+                  <small>{venueSectionData.time}</small>
+                </div>
+                <div>
+                  <span className="venue-detail-label">WHERE</span>
+                  <strong>{venueSectionData.city}</strong>
+                  <small>{venueSectionData.room}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section className="sponsors-section event-section-cream" id="sponsors">
           <div className="sponsors-inner">
             <SectionHeading
-              number="05 / 06"
+              number="06 / 07"
               eyebrow="Made possible by"
               title="Community, together."
               light
@@ -662,7 +748,7 @@ export default function CommunityDayPage() {
         <section className="faq-section event-section-night" id="faq">
           <div className="faq-inner">
             <SectionHeading
-              number="06 / 06"
+              number="07 / 07"
               eyebrow="Good to know"
               title="Questions, answered."
               subtitle="Everything you need to know before joining us in Udaipur."
@@ -678,7 +764,7 @@ export default function CommunityDayPage() {
 
         <section className="final-cta-section" id="register">
           <div>
-            <Eyebrow>{eventInfo.date} · GITS, UDAIPUR</Eyebrow>
+            <Eyebrow>{eventInfo.date} · 3rd Space, UDAIPUR</Eyebrow>
             <h2>
               Come build the cloud
               <br />

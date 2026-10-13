@@ -1,5 +1,13 @@
-import React, { useState } from "react";
-import { Send, Mail, MessageSquare, CheckCircle2 } from "lucide-react";
+import React, { useRef, useState } from "react";
+import { CheckCircle2, Mail, Send } from "lucide-react";
+import "./Contact.css";
+
+const RATE_LIMIT_STORAGE_KEY = "contact-form-rate-limit";
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+const RATE_LIMIT_COOLDOWN_MS = 30 * 1000;
+const MAX_SUBMISSIONS_PER_WINDOW = 5;
+
+const idleStatus = { state: "idle", message: "" };
 
 const Linkedin = ({ size = 24, ...props }) => (
   <svg
@@ -18,62 +26,180 @@ const Linkedin = ({ size = 24, ...props }) => (
     <circle cx="4" cy="4" r="2" />
   </svg>
 );
-import "./Contact.css";
+
+const Instagram = ({ size = 24, ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    stroke="currentColor"
+    strokeWidth="2"
+    fill="none"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    {...props}
+  >
+    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+  </svg>
+);
+
+function getRateLimitRecord() {
+  const stored = window.localStorage.getItem(RATE_LIMIT_STORAGE_KEY);
+  if (!stored) return { submittedAt: [], lastAttemptAt: 0 };
+
+  const record = JSON.parse(stored);
+  return {
+    submittedAt: Array.isArray(record.submittedAt)
+      ? record.submittedAt.filter(
+          (timestamp) =>
+            Number.isSafeInteger(timestamp) &&
+            Date.now() - timestamp < RATE_LIMIT_WINDOW_MS,
+        )
+      : [],
+    lastAttemptAt: Number.isSafeInteger(record.lastAttemptAt)
+      ? record.lastAttemptAt
+      : 0,
+  };
+}
+
+function getRateLimitMessage(record, now) {
+  const cooldownRemaining = record.lastAttemptAt + RATE_LIMIT_COOLDOWN_MS - now;
+  if (cooldownRemaining > 0) {
+    return `Please wait ${Math.ceil(cooldownRemaining / 1000)} seconds before submitting again.`;
+  }
+
+  if (record.submittedAt.length >= MAX_SUBMISSIONS_PER_WINDOW) {
+    const windowRemaining = record.submittedAt[0] + RATE_LIMIT_WINDOW_MS - now;
+    return `Submission limit reached. Please try again in ${Math.ceil(windowRemaining / 60000)} minutes.`;
+  }
+
+  return "";
+}
+
+function FormStatus({ status }) {
+  if (!status.message) return null;
+
+  return (
+    <p
+      className={`form-status form-status-${status.state}`}
+      role="status"
+      aria-live="polite"
+    >
+      {status.message}
+    </p>
+  );
+}
 
 export default function Contact() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    subject: "",
     message: "",
   });
-  const [status, setStatus] = useState("idle"); // idle, sending, success
+  const [subscriptionEmail, setSubscriptionEmail] = useState("");
+  const [messageStatus, setMessageStatus] = useState(idleStatus);
+  const [subscriptionStatus, setSubscriptionStatus] = useState(idleStatus);
+  const isSubmitting = useRef(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  const handleMessageChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((previous) => ({ ...previous, [name]: value }));
+    setMessageStatus(idleStatus);
   };
 
-  const Instagram = ({ size = 24, ...props }) => (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      stroke="currentColor"
-      strokeWidth="2"
-      fill="none"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-    </svg>
-  );
+  const handleSubmission = async (event, type) => {
+    event.preventDefault();
+    if (isSubmitting.current) return;
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (status === "sending") return;
+    const setStatus =
+      type === "message" ? setMessageStatus : setSubscriptionStatus;
+    setStatus({ state: "sending", message: "" });
+    isSubmitting.current = true;
 
-    setStatus("sending");
+    let record;
+    let now;
+    try {
+      now = Date.now();
+      record = getRateLimitRecord();
+      const rateLimitMessage = getRateLimitMessage(record, now);
+      if (rateLimitMessage) {
+        setStatus({ state: "limited", message: rateLimitMessage });
+        isSubmitting.current = false;
+        return;
+      }
 
-    // Simulate API request (e.g., Formspree or EmailJS)
-    setTimeout(() => {
-      setStatus("success");
-      setFormData({ name: "", email: "", subject: "", message: "" });
+      record.lastAttemptAt = now;
+      window.localStorage.setItem(
+        RATE_LIMIT_STORAGE_KEY,
+        JSON.stringify(record),
+      );
+    } catch (error) {
+      console.error("Could not check the contact form rate limit.", error);
+      setStatus({
+        state: "error",
+        message:
+          "We couldn't verify the submission limit. Please enable browser storage and try again.",
+      });
+      isSubmitting.current = false;
+      return;
+    }
 
-      // Reset back to idle after 4 seconds
-      setTimeout(() => {
-        setStatus("idle");
-      }, 400);
-    }, 1800);
+    const email =
+      type === "message" ? formData.email.trim() : subscriptionEmail.trim();
+    const submission =
+      type === "message"
+        ? {
+            username: formData.name.trim(),
+            email,
+            message: formData.message.trim(),
+          }
+        : { email };
+    const collectionName = type === "message" ? "messages" : "emails";
+
+    try {
+      const [{ addDoc, collection }, { db }] = await Promise.all([
+        import("firebase/firestore"),
+        import("../firebase"),
+      ]);
+      await addDoc(collection(db, collectionName), submission);
+
+      record.submittedAt.push(now);
+      window.localStorage.setItem(
+        RATE_LIMIT_STORAGE_KEY,
+        JSON.stringify(record),
+      );
+
+      if (type === "message") {
+        setFormData({ name: "", email: "", message: "" });
+        setMessageStatus({
+          state: "success",
+          message: "Your message was sent successfully.",
+        });
+      } else {
+        setSubscriptionEmail("");
+        setSubscriptionStatus({
+          state: "success",
+          message: "You are subscribed successfully.",
+        });
+      }
+    } catch (error) {
+      console.error("Could not save the contact form submission.", error);
+      const errorCode =
+        error instanceof Error && "code" in error ? ` (${error.code})` : "";
+      setStatus({
+        state: "error",
+        message: `Your submission could not be saved${errorCode}. Check the Firestore rules and project configuration, then try again.`,
+      });
+    } finally {
+      isSubmitting.current = false;
+    }
   };
 
   return (
     <section id="contact" className="contact-section">
       <div className="container">
-        {/* Section Header */}
         <div className="section-header text-center cloud-journey-heading">
           <p className="contact-kicker">AWS STUDENT BUILDER CLUB · GITS</p>
           <h2 className="section-title">Start Your Cloud Journey</h2>
@@ -86,7 +212,6 @@ export default function Contact() {
         </div>
 
         <div className="contact-grid">
-          {/* Left Column: Info & Socials */}
           <div className="contact-info-panel glass">
             <h3 className="contact-sub-title">Why Join Us?</h3>
             <p className="contact-info-desc">
@@ -96,18 +221,26 @@ export default function Contact() {
               networking opportunities to help you grow.
             </p>
 
-            <form onSubmit={handleSubmit} className="contact-form-left">
+            <form
+              onSubmit={(event) => handleSubmission(event, "subscription")}
+              className="contact-form-left"
+            >
               <div className="form-group">
-                <label htmlFor="email" className="form-label">
+                <label htmlFor="subscription-email" className="form-label">
                   Email
                 </label>
                 <input
                   type="email"
-                  id="email"
-                  name="email"
+                  id="subscription-email"
+                  name="subscriptionEmail"
                   required
-                  value={formData.email}
-                  onChange={handleChange}
+                  maxLength={254}
+                  autoComplete="email"
+                  value={subscriptionEmail}
+                  onChange={(event) => {
+                    setSubscriptionEmail(event.target.value);
+                    setSubscriptionStatus(idleStatus);
+                  }}
                   placeholder="john@example.com"
                   className="form-input"
                 />
@@ -115,35 +248,34 @@ export default function Contact() {
 
               <button
                 type="submit"
-                disabled={status === "sending"}
-                className={`btn form-submit-btn ${status === "success" ? "btn-success" : "btn-premium"}`}
+                disabled={subscriptionStatus.state === "sending"}
+                className={`btn form-submit-btn ${subscriptionStatus.state === "success" ? "btn-success" : "btn-premium"}`}
               >
-                {status === "idle" && (
+                {subscriptionStatus.state === "sending" ? (
+                  <>
+                    <span>Subscribing...</span>
+                    <div className="form-spinner" />
+                  </>
+                ) : subscriptionStatus.state === "success" ? (
+                  <>
+                    <span>Subscribed Successfully</span>
+                    <CheckCircle2 size={16} />
+                  </>
+                ) : (
                   <>
                     <span>Subscribe</span>
                     <Send size={16} />
                   </>
                 )}
-                {status === "sending" && (
-                  <>
-                    <span>Sending Message...</span>
-                    <div className="form-spinner" />
-                  </>
-                )}
-                {status === "success" && (
-                  <>
-                    <span>Subscribed Successfully..</span>
-                    <CheckCircle2 size={16} />
-                  </>
-                )}
               </button>
+              <FormStatus status={subscriptionStatus} />
             </form>
 
             <div className="contact-socials-grid">
               <h4 className="socials-title">Connect With Us</h4>
               <div className="socials-row">
                 <a
-                  href="https://instagram.com"
+                  href="https://www.instagram.com/student_builder_group"
                   target="_blank"
                   rel="noreferrer"
                   className="social-icon-btn"
@@ -152,7 +284,7 @@ export default function Contact() {
                   <Instagram size={18} />
                 </a>
                 <a
-                  href="https://linkedin.com"
+                  href="https://www.linkedin.com/company/aws-cloud-club-gits"
                   target="_blank"
                   rel="noreferrer"
                   className="social-icon-btn"
@@ -161,7 +293,8 @@ export default function Contact() {
                   <Linkedin size={18} />
                 </a>
                 <a
-                  href="mailto:awsclub@gits.ac.in"
+                  href="https://mail.google.com/mail/?view=cm&to=bsuthar2024@gmail.com"
+                  target="_blank"
                   className="social-icon-btn"
                   title="Email"
                 >
@@ -171,36 +304,42 @@ export default function Contact() {
             </div>
           </div>
 
-          {/* Right Column: Contact Form */}
-          <form onSubmit={handleSubmit} className="contact-form glass">
+          <form
+            onSubmit={(event) => handleSubmission(event, "message")}
+            className="contact-form glass"
+          >
             <div className="form-group-row">
               <div className="form-group">
-                <label htmlFor="name" className="form-label">
+                <label htmlFor="contact-name" className="form-label">
                   Name
                 </label>
                 <input
                   type="text"
-                  id="name"
+                  id="contact-name"
                   name="name"
                   required
+                  maxLength={100}
+                  autoComplete="name"
                   value={formData.name}
-                  onChange={handleChange}
+                  onChange={handleMessageChange}
                   placeholder="John Doe"
                   className="form-input"
                 />
               </div>
 
               <div className="form-group">
-                <label htmlFor="email" className="form-label">
+                <label htmlFor="contact-email" className="form-label">
                   Email
                 </label>
                 <input
                   type="email"
-                  id="email"
+                  id="contact-email"
                   name="email"
                   required
+                  maxLength={254}
+                  autoComplete="email"
                   value={formData.email}
-                  onChange={handleChange}
+                  onChange={handleMessageChange}
                   placeholder="john@example.com"
                   className="form-input"
                 />
@@ -208,16 +347,17 @@ export default function Contact() {
             </div>
 
             <div className="form-group text">
-              <label htmlFor="message" className="form-label">
+              <label htmlFor="contact-message" className="form-label">
                 Message
               </label>
               <textarea
-                id="message"
+                id="contact-message"
                 name="message"
                 required
+                maxLength={5000}
                 rows="6"
                 value={formData.message}
-                onChange={handleChange}
+                onChange={handleMessageChange}
                 placeholder="Hi, I'd like to join the AWS Student Builder Club..."
                 className="form-input form-textarea"
               />
@@ -225,28 +365,27 @@ export default function Contact() {
 
             <button
               type="submit"
-              disabled={status === "sending"}
-              className={`btn form-submit-btn ${status === "success" ? "btn-success" : "btn-premium"}`}
+              disabled={messageStatus.state === "sending"}
+              className={`btn form-submit-btn ${messageStatus.state === "success" ? "btn-success" : "btn-premium"}`}
             >
-              {status === "idle" && (
+              {messageStatus.state === "sending" ? (
+                <>
+                  <span>Sending Message...</span>
+                  <div className="form-spinner" />
+                </>
+              ) : messageStatus.state === "success" ? (
+                <>
+                  <span>Message Sent!</span>
+                  <CheckCircle2 size={16} />
+                </>
+              ) : (
                 <>
                   <span>Send Message</span>
                   <Send size={16} />
                 </>
               )}
-              {status === "sending" && (
-                <>
-                  <span>Sending Message...</span>
-                  <div className="form-spinner" />
-                </>
-              )}
-              {status === "success" && (
-                <>
-                  <span>Message Sent!</span>
-                  <CheckCircle2 size={16} />
-                </>
-              )}
             </button>
+            <FormStatus status={messageStatus} />
           </form>
         </div>
       </div>

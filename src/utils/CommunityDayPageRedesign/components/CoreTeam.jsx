@@ -6,6 +6,11 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import LinkedInIcon from '../../../components/LinkedInIcon';
 import { coreTeam } from '../../communityDayData';
+import React, { useRef, useEffect, useState } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import LinkedInIcon from "../../../components/LinkedInIcon";
+import { coreTeamRow1, coreTeamRow2 } from "../../communityDayData";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -16,7 +21,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 function InteractiveMarqueeRow({
   items,
-  direction = 'left',
+  direction = "left",
   speed = 0.85,
   initialOffset = 0,
   rowLabel = 'CORE TEAM',
@@ -24,8 +29,13 @@ function InteractiveMarqueeRow({
   const containerRef = useRef(null);
   const trackRef = useRef(null);
 
+  rowLabel = "ROW",
+}) {
+  const containerRef = useRef(null);
+  const trackRef = useRef(null);
+  const [copyCount, setCopyCount] = useState(2);
   const xPos = useRef(initialOffset);
-  const baseSpeed = direction === 'left' ? -speed : speed;
+  const baseSpeed = direction === "left" ? -speed : speed;
   const currentSpeed = useRef(baseSpeed);
 
   const isDragging = useRef(false);
@@ -33,30 +43,73 @@ function InteractiveMarqueeRow({
   const lastTime = useRef(0);
   const velocity = useRef(0);
   const isHovered = useRef(false);
-  const rafId = useRef(null);
   const singleSetWidth = useRef(0);
 
-  const repeatCount = 4;
-  const displayItems = [...items, ...items, ...items, ...items];
+  const repeatedItems = Array.from({ length: copyCount }, () => items);
 
   useEffect(() => {
     const track = trackRef.current;
     if (!track || items.length === 0) return;
 
+    const wrapPosition = (position) => {
+      const period = singleSetWidth.current;
+      if (!period) return position;
+      return ((position % period) + period) % period - period;
+    };
+    const renderPosition = () => {
+      if (track) {
+        track.style.transform = `translate3d(${xPos.current}px, 0, 0)`;
+      }
+    };
     const measureWidth = () => {
       singleSetWidth.current = track.scrollWidth / repeatCount;
 
       if (initialOffset !== 0) {
         xPos.current = initialOffset;
+      const firstSet = track.children[0];
+      const secondSet = track.children[1];
+      const container = containerRef.current;
+      if (!firstSet || !secondSet || !container) return;
+
+      singleSetWidth.current = secondSet.offsetLeft - firstSet.offsetLeft;
+      const period = singleSetWidth.current;
+      if (period > 0) {
+        const requiredCopies = Math.max(
+          2,
+          Math.ceil(container.clientWidth / period) + 2,
+        );
+        setCopyCount((currentCount) =>
+          currentCount === requiredCopies ? currentCount : requiredCopies,
+        );
       }
+      xPos.current = wrapPosition(xPos.current);
+      renderPosition();
     };
 
     measureWidth();
-    window.addEventListener('resize', measureWidth);
+    const resizeObserver =
+      "ResizeObserver" in window
+        ? new ResizeObserver(measureWidth)
+        : null;
+    resizeObserver?.observe(track);
+    if (containerRef.current) resizeObserver?.observe(containerRef.current);
+    if (!resizeObserver) window.addEventListener("resize", measureWidth);
 
     const animate = () => {
       const loopWidth = singleSetWidth.current;
+    // Main 60/120fps physics loop
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (prefersReducedMotion) {
+      return () => {
+        resizeObserver?.disconnect();
+        window.removeEventListener("resize", measureWidth);
+      };
+    }
 
+    let animationFrame = 0;
+    const animate = () => {
       if (!isDragging.current) {
         if (Math.abs(velocity.current) > 0.05) {
           xPos.current += velocity.current;
@@ -88,11 +141,30 @@ function InteractiveMarqueeRow({
         track.style.transform =
           `translate3d(${xPos.current}px, 0, 0)`;
       }
+      xPos.current = wrapPosition(xPos.current);
+      renderPosition();
 
-      rafId.current = requestAnimationFrame(animate);
+      animationFrame = requestAnimationFrame(animate);
     };
 
-    rafId.current = requestAnimationFrame(animate);
+    const start = () => {
+      if (!animationFrame) animationFrame = requestAnimationFrame(animate);
+    };
+    const stop = () => {
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+      animationFrame = 0;
+    };
+    const container = containerRef.current;
+    const observer =
+      container && "IntersectionObserver" in window
+        ? new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) start();
+            else stop();
+          }, { rootMargin: "120px 0px" })
+        : null;
+
+    if (observer && container) observer.observe(container);
+    else start();
 
     return () => {
       window.removeEventListener('resize', measureWidth);
@@ -100,6 +172,10 @@ function InteractiveMarqueeRow({
       if (rafId.current) {
         cancelAnimationFrame(rafId.current);
       }
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", measureWidth);
+      observer?.disconnect();
+      stop();
     };
   }, [baseSpeed, initialOffset, items.length]);
 
@@ -127,6 +203,13 @@ function InteractiveMarqueeRow({
     velocity.current = (deltaX / deltaTime) * 16.6;
 
     lastX.current = event.clientX;
+    const dt = Math.max(now - lastTime.current, 1);
+    const dx = e.clientX - lastX.current;
+
+    xPos.current += dx;
+    velocity.current = (dx / dt) * 16.6; // normalized velocity
+
+    lastX.current = e.clientX;
     lastTime.current = now;
   };
 
@@ -155,7 +238,7 @@ function InteractiveMarqueeRow({
       <div
         ref={trackRef}
         className="flex items-start gap-6 sm:gap-8 will-change-transform"
-        style={{ width: 'max-content' }}
+        style={{ width: "max-content" }}
       >
         {displayItems.map((member, index) => {
           const isDuplicate = index >= items.length;
@@ -222,6 +305,60 @@ function InteractiveMarqueeRow({
             </article>
           );
         })}
+        {repeatedItems.map((set, setIndex) => (
+          <div
+            key={`team-marquee-set-${setIndex}`}
+            className="flex items-start gap-6 sm:gap-8"
+            aria-hidden={setIndex > 0 ? "true" : undefined}
+          >
+            {set.map((member, idx) => (
+              <article
+                key={`${member.id}-${setIndex}-${idx}`}
+                className="team-portrait-card"
+              >
+                <div className="team-image-container">
+                  {member.image && (
+                    <img
+                      src={member.image}
+                      alt={`${member.name}, AWS Community Day Udaipur Core Team`}
+                      loading="lazy"
+                      decoding="async"
+                      className="team-portrait-img"
+                      draggable="false"
+                    />
+                  )}
+
+                  <div className="team-image-vignette" />
+
+                  <div className="team-hover-tag">
+                    <span className="team-tag-dot" />
+                    <span className="team-tag-text">CORE TEAM</span>
+                  </div>
+                </div>
+
+                <div className="team-meta-container">
+                  <h3 className="team-member-name">{member.name}</h3>
+                  <p className="team-member-role">{member.role}</p>
+                  {member.linkedin && (
+                    <a
+                      className="team-member-linkedin"
+                      href={member.linkedin}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={`View ${member.name}'s LinkedIn profile`}
+                      title={`${member.name} on LinkedIn`}
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <LinkedInIcon size={16} />
+                      <span>LinkedIn</span>
+                    </a>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -253,13 +390,17 @@ export default function CoreTeam({ rows = [coreTeam] }) {
           opacity: 1,
           y: 0,
           duration: 1.1,
-          ease: 'power3.out',
+          ease: "power3.out",
           scrollTrigger: {
             trigger: headerRef.current,
             start: 'top 85%',
             toggleActions: 'play none none none',
           },
         }
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+        },
       );
 
       // Reveal the single marquee.
@@ -273,13 +414,17 @@ export default function CoreTeam({ rows = [coreTeam] }) {
           opacity: 1,
           y: 0,
           duration: 1.2,
-          ease: 'power3.out',
+          ease: "power3.out",
           scrollTrigger: {
             trigger: marqueeContainerRef.current,
             start: 'top 88%',
             toggleActions: 'play none none none',
           },
         }
+            start: "top 88%",
+            toggleActions: "play none none none",
+          },
+        },
       );
     }, sectionRef);
 
@@ -305,6 +450,9 @@ export default function CoreTeam({ rows = [coreTeam] }) {
         {/* 2. CORE TEAM HEADING                                            */}
         {/* =============================================================== */}
 
+        {/* =================================================================== */}
+        {/* 2. CORE TEAM HERO / EDITORIAL HEADING                               */}
+        {/* =================================================================== */}
         <div
           ref={headerRef}
           className="flex flex-col md:flex-row md:items-end justify-between gap-8"
@@ -324,7 +472,7 @@ export default function CoreTeam({ rows = [coreTeam] }) {
               <div className="w-1.5 h-1.5 rounded-full bg-zinc-600 hidden sm:block" />
 
               <span className="text-[11px] font-mono tracking-wider text-zinc-400 uppercase hidden sm:inline">
-                AWS USER GROUP UDAIPUR
+                AWS STUDENT BUILDER GROUP GITS
               </span>
             </div>
 
@@ -360,6 +508,24 @@ export default function CoreTeam({ rows = [coreTeam] }) {
           initialOffset={0}
           rowLabel="Core Team"
         />
+      {/* =================================================================== */}
+      {/* 3. TWO-ROW OPPOSITE-DIRECTION CONTINUOUS MARQUEE WALL               */}
+      {/* =================================================================== */}
+      <div
+        ref={marqueeContainerRef}
+        className="flex flex-col gap-8 md:gap-12 w-full"
+      >
+        {/* Row 01: Moves Left ← */}
+        {rows.map((items, index) => (
+          <InteractiveMarqueeRow
+            key={`core-team-row-${index + 1}`}
+            items={items}
+            direction={index % 2 === 0 ? "left" : "right"}
+            speed={0.8}
+            initialOffset={index % 2 === 0 ? 0 : -180}
+            rowLabel={`Core Team Row ${index + 1}`}
+          />
+        ))}
       </div>
     </section>
   );

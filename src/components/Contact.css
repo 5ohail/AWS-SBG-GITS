@@ -192,6 +192,21 @@
   gap: 0.75rem;
 }
 
+.form-status {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.form-status-success {
+  color: var(--success, #38b77a);
+}
+
+.form-status-error,
+.form-status-limited {
+  color: #ff8c80;
+}
+
 .btn-success {
   background-color: var(--success) !important;
   color: #ffffff !important;
